@@ -1,11 +1,11 @@
 # Cuéntame de ti
 
-Formulario anónimo de gustos e intereses, en una sola página (`index.html`). No necesita instalación ni build.
+Formulario de gustos e intereses, en una sola página (`index.html`). No necesita instalación ni build.
 
 ## Características
 
 - Preguntas que cambian según las respuestas anteriores.
-- Máximo 5 opciones por pregunta; la opción "Otra" abre una casilla para escribir.
+- Máximo 5 opciones por pregunta, sin límite al elegir varias; la opción "Otra" abre una casilla para escribir.
 - Funciona en móvil y escritorio, con modo oscuro y soporte para teclado.
 - Sin cookies, sin rastreadores y sin librerías externas (solo tipografías de Google Fonts).
 

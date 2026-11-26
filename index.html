@@ -1,9 +1,9 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cuéntame de ti</title>
-<meta name="description" content="Formulario anónimo de gustos e intereses.">
+<meta name="description" content="Formulario de gustos e intereses.">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#F5F4ED">
 <meta property="og:title" content="Cuéntame de ti">
-<meta property="og:description" content="Formulario anónimo de gustos e intereses.">
+<meta property="og:description" content="Formulario de gustos e intereses.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap">
 <style>
@@ -44,6 +44,10 @@ textarea{width:100%;min-height:130px;margin-top:24px;font:inherit;color:inherit;
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary:hover:not(:disabled){background:var(--accent-d);border-color:var(--accent-d)}
 .btn:disabled{opacity:.35;cursor:not-allowed}
+.field{margin-top:18px;display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.9rem;color:var(--muted)}
+.fld{width:100%;font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.fld:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .foot{margin-top:48px;font-size:.8rem;color:var(--muted);max-width:60ch}
 .facts{display:flex;gap:8px;flex-wrap:wrap;list-style:none;padding:0;margin:20px 0}
 .err{color:#B3261E;font-size:.9rem;margin:12px 0 0;min-height:1.2em}
@@ -54,7 +58,7 @@ textarea{width:100%;min-height:130px;margin-top:24px;font:inherit;color:inherit;
 <header><div class="brand">Cuéntame de ti</div><span class="pill" id="count"></span></header>
 <div class="prog" aria-hidden="true"><i id="bar"></i></div>
 <main id="app" aria-live="polite"></main>
-<footer class="foot">Anónimo: no se guarda tu nombre, correo ni ningún dato que te identifique. Las respuestas se usan solo para un proyecto del colegio.</footer>
+<footer class="foot">Tu nombre y correo solo los veo yo, se usan únicamente para el premio y este proyecto, y no se comparten con nadie.</footer>
 </div>
 <script>
 const N={};
@@ -115,7 +119,8 @@ N.tp3=A=>({t:"¿En qué te gustaría que te ayudaran en tu día a día?",h:"Elig
 N.ia6=A=>({t:"¿Con qué te gustaría que una IA te ayudara?",h:"Elige todas las que quieras.",type:"multi",max:99,o:O(["Con las tareas","Con ideas creativas","A organizarme","A aprender algo nuevo"]).concat([OT()]),next:"disp"});
 N.disp=A=>({t:"¿Qué usas más cuando no estás en clase?",type:"one",o:O(["Celular","Computador o laptop","Tablet","Consola","Casi ninguno"]),next:"ab1"});
 N.ab1=A=>({t:"¿Qué es lo que más te aburre?",h:"Elige todas las que quieras.",type:"multi",max:99,o:O(["Esperar","Escuchar charlas largas","Repetir lo mismo","Estar quieto mucho rato"]).concat([OT()]),next:"fin"});
-N.fin=A=>({t:"¿Algo más que quieras contarme de ti?",h:"Opcional. Sin nombres de personas.",type:"text",opt:true,next:null});
+N.fin=A=>({t:"¿Algo más que quieras contarme de ti?",h:"Opcional. Sin nombres de personas.",type:"text",opt:true,next:"ct"});
+N.ct=A=>({t:"Para el premio: ¿cómo te contacto?",h:"Solo lo uso para avisarte si ganaste. No se comparte.",type:"contact",next:null});
 const TEMA=A=>ctx(A).nom;
 if(typeof module!="undefined")module.exports=N;
 
@@ -127,6 +132,8 @@ const ENDPOINT="";
 // Base de datos de respaldo (Supabase). URL del proyecto y clave publicable.
 const SUPA_URL="";
 const SUPA_KEY="";
+// Si quieres aceptar solo correos del colegio, pon aquí su dominio, por ejemplo "colegio.edu.co".
+const ALLOWED_DOMAIN="";
 const WEB3KEY="8a41f439-eea2-4205-8e70-7a9013e1fd4a";
 const A={},app=document.getElementById("app"),bar=document.getElementById("bar"),cnt=document.getElementById("count");
 let hist=[];
@@ -137,7 +144,7 @@ const isSelO=v=>typeof v=="string"&&v.startsWith("Otra: ");
 function pickNext(n){const a=A[n.id];if(n.type=="one"){const o=n.o.find(x=>x.other?isSelO(a):x.v===a);if(o&&o.go)return o.go}return n.next}
 function show(id){hist.push(id);render(id)}
 function render(id){const n=Object.assign({id},N[id](A));app.innerHTML="";app.style.animation="none";void app.offsetWidth;app.style.animation="";
- const step=hist.length;bar.style.width=Math.min(step/19,.96)*100+"%";cnt.textContent="Pregunta "+step;
+ const step=hist.length;bar.style.width=Math.min(step/20,.96)*100+"%";cnt.textContent="Pregunta "+step;
  if(GIFOF[id])app.append(mascot(GIFOF[id]));
  if(n.lead){const l=$("p","lead");l.append(document.createTextNode(n.lead));app.append(l)}
  app.append($("h2",0,n.t));if(n.h)app.append($("p","muted",n.h));
@@ -145,11 +152,14 @@ function render(id){const n=Object.assign({id},N[id](A));app.innerHTML="";app.st
  const last=n.next===null;
  const next=$("button","btn primary",last?"Enviar":"Siguiente");
  const val=()=>A[n.id];
- const ok=()=>{if(n.type=="multi"){const a=val()||[];return a.length>0&&!a.includes("Otra: ")}const v=val();return !!v&&String(v).trim()!==""&&v!=="Otra: "};
+ const okc=()=>{const nm=(A.nombre||"").trim(),em=(A.correo||"").trim().toLowerCase();return nm.length>=2&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)&&(!ALLOWED_DOMAIN||em.endsWith("@"+ALLOWED_DOMAIN.toLowerCase()))};
+ const ok=()=>{if(n.type=="contact")return okc();if(n.type=="multi"){const a=val()||[];return a.length>0&&!a.includes("Otra: ")}const v=val();return !!v&&String(v).trim()!==""&&v!=="Otra: "};
  const upd=()=>{next.disabled=!n.opt&&!ok()};
  const say=$("div");
  const setSay=t=>{say.innerHTML="";if(t){const s=$("div","say");s.append($("span",0,t));say.append(s)}};
- if(n.type=="text"){const t=$("textarea");t.maxLength=400;t.setAttribute("aria-label",n.t);t.value=A[n.id]||"";t.oninput=()=>{A[n.id]=t.value;upd()};app.append(t)}
+ if(n.type=="contact"){const mk=(k,lbl,ty,ac)=>{const w=$("div","field");w.append($("label",0,lbl));const i=$("input","fld");i.type=ty;i.autocomplete=ac;i.maxLength=80;i.value=A[k]||"";i.oninput=()=>{A[k]=i.value;err.textContent="";upd()};i.setAttribute("aria-label",lbl);w.append(i);return w};
+  app.append(mk("nombre","Tu nombre","text","name"),mk("correo","Tu correo"+(ALLOWED_DOMAIN?" (@"+ALLOWED_DOMAIN+")":""),"email","email"))}
+ else if(n.type=="text"){const t=$("textarea");t.maxLength=400;t.setAttribute("aria-label",n.t);t.value=A[n.id]||"";t.oninput=()=>{A[n.id]=t.value;upd()};app.append(t)}
  else{const box=$("div","opts"+(n.type=="multi"?" multi":""));
   const inp=$("input","other");inp.type="text";inp.maxLength=80;inp.placeholder="Escribe cuál";inp.setAttribute("aria-label","Escribe cuál");
   const sel=o=>n.type=="multi"?(val()||[]).some(x=>o.other?isSelO(x)||x==="Otra: ":x===o.v):(o.other?(isSelO(val())||val()==="Otra: "):val()===o.v);
@@ -173,18 +183,18 @@ function render(id){const n=Object.assign({id},N[id](A));app.innerHTML="";app.st
  next.onclick=()=>{if(last)return send(err,next);const to=pickNext(n);swap(()=>show(to))};
  upd();if(hist.length<2)back.style.visibility="hidden";nav.append(back,next);app.append(nav)}
 function intro(){
- const f=$("ul","facts");["Unas 18 preguntas","5 minutos","Anónimo"].forEach(x=>f.append($("li","pill",x)));
+ const f=$("ul","facts");["Unas 19 preguntas","5 minutos","Premio para los 5 primeros"].forEach(x=>f.append($("li","pill",x)));
  const b=$("button","btn primary","Empezar");b.onclick=()=>swap(()=>show("q1"));
  app.append(mascot("dance","140px"),$("h1",0,"Ayúdame con esto"),
   $("p",0,"Es para un proyecto de Tecnología que me pidió el profe Fabs para el tercer trimestre. Necesito conocer lo que te gusta y cómo eres, y tus respuestas me ayudan a hacerlo bien."),$("p",0,"Las preguntas cambian según lo que respondas, así que sé sincero."),f,
-  $("p","muted","No pedimos nombre ni datos personales."),b)}
+  $("p","muted","Al final te pido tu nombre y correo, solo para avisarte si ganas el premio."),b)}
 function send(err,btn){btn.disabled=true;btn.textContent="Enviando…";err.textContent="";
- const out={ruta:hist.join(">"),tema:TEMA(A)};hist.forEach(k=>{if(A[k]!=null)out[k]=A[k]});
+ const out={ruta:hist.join(">"),tema:TEMA(A),nombre:(A.nombre||"").trim(),correo:(A.correo||"").trim().toLowerCase()};hist.forEach(k=>{if(A[k]!=null&&k!="ct")out[k]=A[k]});
  const ok=()=>swap(done),fail=()=>{btn.disabled=false;btn.textContent="Enviar";err.textContent="No se pudo enviar. Revisa tu internet y vuelve a intentarlo."};
  const jobs=[];
  if(window.google&&google.script&&google.script.run){google.script.run.withSuccessHandler(ok).withFailureHandler(fail).guardar(out);return}
  if(SUPA_URL&&SUPA_KEY)jobs.push(fetch(SUPA_URL+"/rest/v1/respuestas",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,Prefer:"return=minimal"},body:JSON.stringify({ruta:out.ruta,tema:out.tema,datos:out})}).then(r=>{if(!r.ok)throw 0}));
- if(WEB3KEY){const body={access_key:WEB3KEY,subject:"Nueva respuesta del formulario",from_name:"Formulario",botcheck:""};Object.keys(out).forEach(k=>{body[k]=Array.isArray(out[k])?out[k].join(", "):String(out[k])});
+ if(WEB3KEY){const body={access_key:WEB3KEY,subject:"Nueva respuesta: "+out.nombre,from_name:out.nombre,email:out.correo,botcheck:""};Object.keys(out).forEach(k=>{body[k]=Array.isArray(out[k])?out[k].join(", "):String(out[k])});
   jobs.push(fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(body)}).then(r=>r.json()).then(j=>{if(!j.success)throw 0}))}
  if(ENDPOINT)fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(out)}).catch(()=>{});
  if(!jobs.length){console.log("PREVIEW:",JSON.stringify(out));return ok()}

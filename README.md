@@ -24,7 +24,7 @@ Formulario anónimo de gustos e intereses, en una sola página (`index.html`). N
 2. En `index.html`, pega la clave en `const WEB3KEY=""`. Las claves de Web3Forms son públicas por diseño.
 3. En **Settings > Pages**, publica desde la rama `main`, carpeta `/ (root)`.
 
-Cada envío llega como un correo con las respuestas.
+Cada envío llega como un correo con las respuestas. Opcionalmente, `apps-script/Code.gs` guarda una copia en una hoja de Google: despliégalo como aplicación web y pega su URL `/exec` en `const ENDPOINT=""`.
 
 ## Probar en local
 

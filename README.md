@@ -1,4 +1,4 @@
-# Cuéntame de ti
+# ClaudeEvent
 
 Formulario de gustos e intereses de una sola página (`index.html`), sin dependencias ni build.
 

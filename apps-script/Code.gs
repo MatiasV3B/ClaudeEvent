@@ -1,5 +1,5 @@
 // Pegar en: Hoja de cálculo > Extensiones > Apps Script
-const COLS = ["q1", "ot2", "q2", "qb", "qc", "qd", "qe", "sm1", "apr", "tr1", "ask", "ia1", "ia2", "ia3", "ia4", "ia5", "disp", "ab1", "fin"];
+const COLS = ["q1", "ot2", "q2", "qb", "qd", "sm1", "apr", "tr1", "ask", "ia1", "ia2", "ia3", "ia4", "ia5", "tp1", "tp2", "tp3", "ia6", "disp", "ab1", "fin"];
 
 function doGet() {
   return HtmlService.createHtmlOutputFromFile("index")
